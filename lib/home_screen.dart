@@ -22,23 +22,23 @@ class HomeScreen extends StatelessWidget {
           _buildResultCard(
             context: context,
             title: 'Morning Result',
-            time: 'Result Time Every Day is 1.10 PM navendu m' ,
+            time: 'Result Time Every Day is 1.10 PM navendu m',
             bengaliTime: ' প্রতিদিন রেজাল্টের সময় 1.10PM',
-            image: 'assets/morning_image.png', // Placeholder
+            image: 'assets/image/morning_image.png', // Placeholder
           ),
           _buildResultCard(
             context: context,
             title: 'Evening Result',
             time: 'Result Time Every Day is 6.10 PM',
             bengaliTime: ' প্রতিদিন রেজাল্টের সময় 6.10PM',
-            image: 'assets/evening_image.png', // Placeholder
+            image: 'assets/image/morning_image.png', // Placeholder
           ),
           _buildResultCard(
             context: context,
             title: 'Night Result',
             time: 'Result Time Every Day is 8.10 PM',
             bengaliTime: ' প্রতিদিন রেজাল্টের সময় 8.10PM',
-            image: 'assets/night_image.png', // Placeholder
+            image: 'assets/image/morning_image.png', // Placeholder
           ),
           _buildResultCard(
             context: context,
@@ -83,19 +83,34 @@ class HomeScreen extends StatelessWidget {
       child: InkWell(
         onTap: () async {
           if (title == 'Morning Result') {
+            String dynamicUrl = generateDynamicUrl(DateTime.now(), "MD");
+
             await Navigator.push(
               context,
-              MaterialPageRoute(builder: (context) => MorningResultScreen()),
+              MaterialPageRoute(
+                  builder: (context) => MorningResultScreen(
+                        pdfUrl: dynamicUrl,
+                      )),
             );
           } else if (title == 'Evening Result') {
+            String dynamicUrl = generateDynamicUrl(DateTime.now(), "MD");
+
             await Navigator.push(
               context,
-              MaterialPageRoute(builder: (context) => EveningResultScreen()),
+              MaterialPageRoute(
+                  builder: (context) => EveningResultScreen(
+                        pdfUrl: dynamicUrl,
+                      )),
             );
           } else if (title == 'Night Result') {
+            String dynamicUrl = generateDynamicUrl(DateTime.now(), "MD");
+
             await Navigator.push(
               context,
-              MaterialPageRoute(builder: (context) => NightResultScreen()),
+              MaterialPageRoute(
+                  builder: (context) => NightResultScreen(
+                        pdfUrl: dynamicUrl,
+                      )),
             );
           } else if (title == 'Old Result') {
             // TODO: Add navigation for Old Result
@@ -104,17 +119,17 @@ class HomeScreen extends StatelessWidget {
         child: Padding(
           padding: const EdgeInsets.all(16.0),
           child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
+            crossAxisAlignment: CrossAxisAlignment.center,
             children: <Widget>[
               if (!textOnly)
                 Row(
                   children: [
-                    if (image != null)
-                      Image.asset(
-                        image,
-                        height: 50,
-                        width: 50,
-                      ),
+                    // if (image != null)
+                    //   Image.asset(
+                    //     image,
+                    //     height: 50,
+                    //     width: 50,
+                    //   ),
                     SizedBox(width: 10),
                     Expanded(
                       child: Column(
@@ -164,7 +179,11 @@ class LotteryCard extends StatelessWidget {
   final String numbers;
   final VoidCallback onTap;
 
-  LotteryCard({required this.name, required this.date, required this.numbers, required this.onTap});
+  LotteryCard(
+      {required this.name,
+      required this.date,
+      required this.numbers,
+      required this.onTap});
 
   @override
   Widget build(BuildContext context) {
@@ -176,4 +195,13 @@ class LotteryCard extends StatelessWidget {
       ),
     );
   }
+}
+
+String generateDynamicUrl(DateTime dateTime, String type) {
+  String day = dateTime.day.toString().padLeft(2, '0'); // Ensure two digits
+  String month = dateTime.month.toString().padLeft(2, '0'); // Ensure two digits
+  String year =
+      dateTime.year.toString().substring(2); // Get last two digits of the year
+
+  return "https://nagalandstatelotterysambad.com/wp-content/uploads/20$year/$type$day$month$year.pdf";
 }
