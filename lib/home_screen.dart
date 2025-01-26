@@ -93,7 +93,7 @@ class HomeScreen extends StatelessWidget {
                       )),
             );
           } else if (title == 'Evening Result') {
-            String dynamicUrl = generateDynamicUrl(DateTime.now(), "MD");
+            String dynamicUrl = generateDynamicUrl(DateTime.now(), "DD");
 
             await Navigator.push(
               context,
@@ -103,7 +103,7 @@ class HomeScreen extends StatelessWidget {
                       )),
             );
           } else if (title == 'Night Result') {
-            String dynamicUrl = generateDynamicUrl(DateTime.now(), "MD");
+            String dynamicUrl = generateDynamicUrl(DateTime.now(), "ED");
 
             await Navigator.push(
               context,
