@@ -83,6 +83,7 @@ class HomeScreen extends StatelessWidget {
       child: InkWell(
         onTap: () async {
           if (title == 'Morning Result') {
+            // https://nagalandstatelotterysambad.com/wp-content/uploads/2025/01/MD250125.pdf
             String dynamicUrl = generateDynamicUrl(DateTime.now(), "MD");
 
             await Navigator.push(
@@ -203,5 +204,5 @@ String generateDynamicUrl(DateTime dateTime, String type) {
   String year =
       dateTime.year.toString().substring(2); // Get last two digits of the year
 
-  return "https://nagalandstatelotterysambad.com/wp-content/uploads/20$year/$type$day$month$year.pdf";
+  return "https://nagalandstatelotterysambad.com/wp-content/uploads/20$year/$month/$type$day$month$year.pdf";
 }
