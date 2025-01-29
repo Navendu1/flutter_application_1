@@ -4,6 +4,8 @@ import 'morning_result.dart';
 import 'evening_result.dart';
 import 'night_result.dart';
 import 'widgets/app_drawer.dart';
+import 'screens/live_results_screen.dart';
+import 'screens/old_results_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -16,6 +18,7 @@ class _HomeScreenState extends State<HomeScreen> {
   late String _timeString;
   Timer? _timer;
   final Map<String, bool> _expandedStates = {};
+  int _selectedIndex = 0;
   
   final Map<String, TimeOfDay> resultTimes = {
     'Morning': TimeOfDay(hour: 13, minute: 10),  // 1:10 PM
@@ -312,7 +315,10 @@ class _HomeScreenState extends State<HomeScreen> {
         ),
       ),
       drawer: AppDrawer(),
-      body: ListView(
+      body: IndexedStack(
+        index: _selectedIndex,
+        children: [
+          ListView(
         padding: EdgeInsets.symmetric(vertical: 16),
         children: [
           _buildLotteryResultCard(
@@ -354,21 +360,34 @@ class _HomeScreenState extends State<HomeScreen> {
               );
             },
           ),
+          ],
+          ),
+          const LiveResultsScreen(),
+          const OldResultsScreen(),
         ],
       ),
-      bottomNavigationBar: BottomNavigationBar(
-        items: const <BottomNavigationBarItem>[
-          BottomNavigationBarItem(
-            icon: Icon(Icons.home),
-            label: 'HOME',
+      bottomNavigationBar: NavigationBar(
+        selectedIndex: _selectedIndex,
+        onDestinationSelected: (int index) {
+          setState(() {
+            _selectedIndex = index;
+          });
+        },
+        destinations: const <NavigationDestination>[
+          NavigationDestination(
+            selectedIcon: Icon(Icons.home),
+            icon: Icon(Icons.home_outlined),
+            label: 'Home',
           ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.history),
-            label: 'Old Result',
+          NavigationDestination(
+            selectedIcon: Icon(Icons.live_tv),
+            icon: Icon(Icons.live_tv_outlined),
+            label: 'Live Results',
           ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.signal_cellular_alt),
-            label: 'Prediction',
+          NavigationDestination(
+            selectedIcon: Icon(Icons.history),
+            icon: Icon(Icons.history_outlined),
+            label: 'Old Results',
           ),
         ],
       ),
