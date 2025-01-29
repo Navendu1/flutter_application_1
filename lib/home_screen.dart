@@ -16,12 +16,55 @@ class _HomeScreenState extends State<HomeScreen> {
   late String _timeString;
   Timer? _timer;
   final Map<String, bool> _expandedStates = {};
+  
+  final Map<String, TimeOfDay> resultTimes = {
+    'Morning': TimeOfDay(hour: 13, minute: 10),  // 1:10 PM
+    'Evening': TimeOfDay(hour: 18, minute: 10),  // 6:10 PM
+    'Night': TimeOfDay(hour: 20, minute: 10),    // 8:10 PM
+  };
+
+  String _calculateNextUpdate(String timeSlot) {
+    final now = DateTime.now();
+    final resultTime = resultTimes[timeSlot]!;
+    
+    // Convert TimeOfDay to DateTime for today
+    final resultDateTime = DateTime(
+      now.year,
+      now.month,
+      now.day,
+      resultTime.hour,
+      resultTime.minute,
+    );
+
+    if (now.isAfter(resultDateTime)) {
+      return 'Results Out';
+    }
+
+    final difference = resultDateTime.difference(now);
+    final hours = difference.inHours;
+    final minutes = difference.inMinutes.remainder(60);
+    
+    return 'Next Update in ${hours}h ${minutes.toString().padLeft(2, '0')}m';
+  }
+
+  bool _isResultOut(String timeSlot) {
+    final now = DateTime.now();
+    final resultTime = resultTimes[timeSlot]!;
+    final resultDateTime = DateTime(
+      now.year,
+      now.month,
+      now.day,
+      resultTime.hour,
+      resultTime.minute,
+    );
+    return now.isAfter(resultDateTime);
+  }
 
   @override
   void initState() {
     super.initState();
     _updateTime();
-    _timer = Timer.periodic(const Duration(seconds: 1), (_) {
+    _timer = Timer.periodic(const Duration(minutes: 1), (_) {
       if (mounted) {
         _updateTime();
       }
@@ -91,7 +134,9 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
 
-  Widget _buildResultBadge(bool isOut) {
+  Widget _buildResultBadge(String timeSlot) {
+    final isOut = _isResultOut(timeSlot);
+    final updateText = _calculateNextUpdate(timeSlot);
     return Container(
       padding: EdgeInsets.symmetric(horizontal: 12, vertical: 4),
       decoration: BoxDecoration(
@@ -103,7 +148,7 @@ class _HomeScreenState extends State<HomeScreen> {
         ),
       ),
       child: Text(
-        isOut ? 'Results Out' : 'Next Update in 2h 05m',
+        updateText,
         style: TextStyle(
           color: isOut ? Colors.green[700] : Colors.grey[700],
           fontSize: 12,
@@ -116,7 +161,6 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget _buildLotteryResultCard({
     required String timeSlot,
     required String displayTime,
-    required bool isResultOut,
     required VoidCallback onTap,
   }) {
     bool isExpanded = _expandedStates[timeSlot] ?? false;
@@ -160,7 +204,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         fontWeight: FontWeight.w600,
                       ),
                     ),
-                    _buildResultBadge(isResultOut),
+                    _buildResultBadge(timeSlot),
                   ],
                 ),
                 SizedBox(height: 16),
@@ -274,7 +318,6 @@ class _HomeScreenState extends State<HomeScreen> {
           _buildLotteryResultCard(
             timeSlot: 'Morning',
             displayTime: '1:10 PM',
-            isResultOut: true,
             onTap: () async {
               String dynamicUrl = generateDynamicUrl(DateTime.now(), "MD");
               await Navigator.push(
@@ -288,7 +331,6 @@ class _HomeScreenState extends State<HomeScreen> {
           _buildLotteryResultCard(
             timeSlot: 'Evening',
             displayTime: '6:10 PM',
-            isResultOut: false,
             onTap: () async {
               String dynamicUrl = generateDynamicUrl(DateTime.now(), "DD");
               await Navigator.push(
@@ -302,7 +344,6 @@ class _HomeScreenState extends State<HomeScreen> {
           _buildLotteryResultCard(
             timeSlot: 'Night',
             displayTime: '8:10 PM',
-            isResultOut: false,
             onTap: () async {
               String dynamicUrl = generateDynamicUrl(DateTime.now(), "ED");
               await Navigator.push(
