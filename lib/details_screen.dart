@@ -5,7 +5,7 @@ class DetailsScreen extends StatelessWidget {
   final String drawDate;
   final String winningNumbers;
 
-  DetailsScreen({
+  const DetailsScreen({super.key, 
     required this.lotteryName,
     required this.drawDate,
     required this.winningNumbers,

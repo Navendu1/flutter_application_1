@@ -5,7 +5,7 @@ import 'package:http/http.dart' as http;
 class PDFViewerPage extends StatefulWidget {
   final String pdfUrl;
 
-  const PDFViewerPage({Key? key, required this.pdfUrl}) : super(key: key);
+  const PDFViewerPage({super.key, required this.pdfUrl});
 
   @override
   _PDFViewerPageState createState() => _PDFViewerPageState();
