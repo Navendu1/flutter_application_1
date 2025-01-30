@@ -29,42 +29,64 @@ class _LiveResultsScreenState extends State<LiveResultsScreen> {
       ..setJavaScriptMode(JavaScriptMode.unrestricted)
       ..setBackgroundColor(Colors.black)
       ..enableZoom(false)
+      ..loadRequest(Uri.parse('about:blank'))
       ..setNavigationDelegate(
         NavigationDelegate(
+          onProgress: (int progress) {
+            print('Loading progress: $progress%');
+          },
           onPageStarted: (String url) {
             setState(() {
               isLoading = true;
             });
+            print('Page load started');
+            
+            // Set up viewports and scaling when page starts
+            _controller.runJavaScript('''
+              var meta = document.createElement('meta');
+              meta.name = 'viewport';
+              meta.content = 'width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no';
+              document.head.appendChild(meta);
+            ''');
           },
           onPageFinished: (String url) {
             setState(() {
               isLoading = false;
             });
+            print('Page load finished');
           },
           onWebResourceError: (WebResourceError error) {
             setState(() {
               isLoading = false;
             });
+            print('Web resource error: ${error.description}');
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
-                content: Text('Error loading stream: ${error.description}'),
+                content: Text('Error loading video: ${error.description}'),
+                backgroundColor: Colors.red,
+                duration: const Duration(seconds: 5),
                 action: SnackBarAction(
                   label: 'Retry',
-                  onPressed: () {
-                    _loadHtmlFromAssets();
-                  },
+                  textColor: Colors.white,
+                  onPressed: () => _loadHtmlFromAssets(),
                 ),
               ),
             );
           },
         ),
+      )
+      ..addJavaScriptChannel(
+        'VideoState',
+        onMessageReceived: (JavaScriptMessage message) {
+          print('Video state: ${message.message}');
+        },
       );
 
     // Configure Android-specific settings
     if (_controller.platform is AndroidWebViewController) {
       AndroidWebViewController.enableDebugging(true);
-      (_controller.platform as AndroidWebViewController)
-        .setMediaPlaybackRequiresUserGesture(false);
+      final AndroidWebViewController controller = _controller.platform as AndroidWebViewController;
+      controller.setMediaPlaybackRequiresUserGesture(false);
     }
 
     _loadHtmlFromAssets();
@@ -74,12 +96,33 @@ class _LiveResultsScreenState extends State<LiveResultsScreen> {
     try {
       String htmlContent = await rootBundle.loadString('assets/youtube_player.html');
       await _controller.loadHtmlString(htmlContent, baseUrl: 'https://www.youtube.com');
+      
+      // Add JavaScript console logging
+      await _controller.runJavaScript('''
+        console.log = function(message) {
+          if (window.flutter_inappwebview) {
+            window.flutter_inappwebview.callHandler('consoleLog', message);
+          }
+        };
+        console.error = function(message) {
+          if (window.flutter_inappwebview) {
+            window.flutter_inappwebview.callHandler('consoleError', message);
+          }
+        };
+      ''');
     } catch (e) {
       if (mounted) {
+        print('Error loading player: $e'); // Debug log
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('Error loading player: $e'),
             backgroundColor: Colors.red,
+            duration: const Duration(seconds: 5),
+            action: SnackBarAction(
+              label: 'Retry',
+              textColor: Colors.white,
+              onPressed: () => _loadHtmlFromAssets(),
+            ),
           ),
         );
       }
@@ -111,8 +154,16 @@ class _LiveResultsScreenState extends State<LiveResultsScreen> {
           color: Colors.black,
           child: Stack(
             children: [
-              WebViewWidget(
-                controller: _controller,
+              LayoutBuilder(
+                builder: (context, constraints) {
+                  return SizedBox(
+                    width: constraints.maxWidth,
+                    height: constraints.maxHeight,
+                    child: WebViewWidget(
+                      controller: _controller,
+                    ),
+                  );
+                },
               ),
               if (isLoading)
                 const Center(

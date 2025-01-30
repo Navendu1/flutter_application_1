@@ -4,68 +4,62 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <style>
-        body {
+        html, body {
             margin: 0;
             padding: 0;
+            width: 100%;
+            height: 100%;
             background-color: #000;
+            overflow: hidden;
+        }
+        .container {
+            position: relative;
+            width: 100%;
+            height: 100%;
             display: flex;
             justify-content: center;
             align-items: center;
-            height: 100vh;
-            width: 100vw;
         }
-        #player {
+        iframe {
+            position: absolute;
+            top: 0;
+            left: 0;
             width: 100%;
             height: 100%;
+            border: none;
         }
     </style>
 </head>
 <body>
-    <div id="player"></div>
+    <div class="container">
+        <iframe
+            src="https://www.youtube.com/embed/wBKp-e8IXlc?enablejsapi=1&autoplay=1&playsinline=1&controls=1"
+            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+            allowfullscreen>
+        </iframe>
+    </div>
 
     <script>
-        var tag = document.createElement('script');
-        tag.src = "https://www.youtube.com/iframe_api";
-        var firstScriptTag = document.getElementsByTagName('script')[0];
-        firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
-
-        var player;
-        function onYouTubeIframeAPIReady() {
-            player = new YT.Player('player', {
-                playerVars: {
-                    'autoplay': 1,
-                    'playsinline': 1,
-                    'controls': 1,
-                    'modestbranding': 1,
-                    'rel': 0,
-                    'showinfo': 0
-                },
-                events: {
-                    'onReady': onPlayerReady,
-                    'onError': onPlayerError,
-                    'onStateChange': onPlayerStateChange
-                }
-            });
-        }
-
-        function onPlayerReady(event) {
-            player.loadVideoByUrl('https://www.youtube.com/embed/live_stream?channel=UCBjr-O_WVrC5845TefNjNzA');
-            console.log('Player Ready');
-        }
-
-        function onPlayerError(event) {
-            console.error('Player Error:', event.data);
+        // Add message handler to communicate with Flutter
+        window.addEventListener('message', function(e) {
             if (window.flutter_inappwebview) {
-                window.flutter_inappwebview.callHandler('onError', event.data);
+                window.flutter_inappwebview.callHandler('onMessage', e.data);
             }
-        }
+        });
 
-        function onPlayerStateChange(event) {
-            console.log('Player State:', event.data);
+        // Log any errors
+        window.onerror = function(message, source, lineno, colno, error) {
             if (window.flutter_inappwebview) {
-                window.flutter_inappwebview.callHandler('onStateChange', event.data);
+                window.flutter_inappwebview.callHandler('onError', {
+                    message: message,
+                    source: source,
+                    lineno: lineno,
+                    colno: colno,
+                    error: error?.toString()
+                });
             }
-        }
+            return false;
+        };
     </script>
 </body>
 </html>
